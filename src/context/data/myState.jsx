@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import myContext from './myContext'
 
 const MyState = (props) => {
-    const [mode, setMode] = useState("light")
+    const [mode, setMode] = useState("light");
 
     const toggleMode = () => {
       if(mode === "light"){
@@ -13,11 +13,16 @@ const MyState = (props) => {
         document.body.style.backgroundColor = "#fff";
       }
     }
+
+    const [loading, setLoading] = useState(false);
+
   return (
     <myContext.Provider
         value={{
           mode,
           toggleMode,
+          loading, 
+          setLoading
         }}
     >
         {props.children}
