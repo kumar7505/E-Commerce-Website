@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import myContext from './myContext'
-import { onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore';
+import { toast } from 'react-toastify';
+import { auth, fireDB } from '../../firebase/FirebaseConfig';
 
 const MyState = (props) => {
     const [mode, setMode] = useState("light");
@@ -19,7 +21,7 @@ const MyState = (props) => {
 
     const [products, setProducts] = useState({
       title: null,
-      proce: null,
+      price: null,
       imageUrl: null,
       category: null,
       description: null,
@@ -34,17 +36,27 @@ const MyState = (props) => {
       ),
     });
 
-    const addProducts = async() => {
-      if(products.title === null || products.proce === null || products.imageUrl === null || products.category === null || products.description === null){
+    const addProduct = async() => {
+      if(products.title == null || products.price == null || products.imageUrl == null || products.category == null || products.description == null){
         return toast.error("Please fill all the fields")
       }
       setLoading(true);
       try{  
         const productRef = collection(fireDB, 'products')
+        console.log(productRef);
+        
         await addDoc(productRef, products);
         toast.success("Product added successfully");
         getProductData();
-        setLoading(false);
+
+        setTimeout(() => {
+          setLoading(false);
+        } ,400);
+
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 300);
+      
       } catch(error){
         toast.error("Error adding product: ", error.message);
         setLoading(false);
@@ -89,7 +101,7 @@ const MyState = (props) => {
           
           products,
           setProducts,  
-          addProducts,
+          addProduct,
           product,
         }}
     >
