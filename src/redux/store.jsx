@@ -6,4 +6,11 @@ export const store = configureStore({
     cart: cartSlice
   },
   devTools:true
-})
+});
+
+store.subscribe(() => {
+  const state = store.getState();
+  localStorage.setItem('cart', JSON.stringify(state.cart));
+});
+
+export default store;
