@@ -1,10 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState, Fragment } from 'react'
 import myContext from '../../context/data/myContext';
 import Layout from '../../Components/layout/Layout';
-import Modal from '../../Components/modal/Modal';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { deleteFromCart } from '../../redux/cartSlice';
+import { Dialog, Transition } from '@headlessui/react'
+import { loadStripe } from '@stripe/stripe-js';
+import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 
 function Cart() {
 
@@ -25,11 +28,71 @@ function Cart() {
     const total = cartItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
     setTotalAmount(total);
   }, [cartItems]); // Recalculate total whenever cartItems changes
+
+  //modal
+  
+  let [isOpen, setIsOpen] = useState(false)
+
+  function closeModal() {
+      setIsOpen(false)
+  }
+
+  function openModal() {
+      setIsOpen(true)
+  }
+
+  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+  const handleCheckout = async () => {
+    const stripe = await stripePromise;
+    openModal();
+    
+    const response = await fetch("http://localhost:5000/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: [...cartItems, {title: "Shipping Amount", price: cartItems.length * 10}] }),
+    });
+    console.log("kumar");
+    
+
+    const session = await response.json();
+    await stripe.redirectToCheckout({ sessionId: session.id });
+  };
+  
+
+  //loader
+  const [bills, setBills] = useState([]);
+  
+  useEffect(() => {
+    const createBill = () => ({
+      id: Date.now() + Math.random(),
+      delay: Math.random() * 0.3,
+      y: Math.random() * 20 - 10, // Random y position between -10 and 10
+      rotation: Math.random() * 20 - 10, // Random initial rotation
+      scale: Math.random() * 0.3 + 0.7 // Random scale between 0.7 and 1
+    });
+
+    // Create initial bills
+    setBills(Array.from({ length: 3 }, createBill));
+
+    const interval = setInterval(() => {
+      const newBill = createBill();
+      
+      setBills(current => [...current, newBill]);
+      
+      setTimeout(() => {
+        setBills(current => current.filter(b => b.id !== newBill.id));
+      }, 2500);
+    }, 800);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Layout >
       <div className="min-h-screen bg-gray-100 pt-5" style={{ backgroundColor: mode === 'dark' ? '#282c34' : '', color: mode === 'dark' ? 'white' : '', }}>
         <h1 className="mb-10 text-center text-2xl font-bold">Cart Items</h1>
-        <div className="mx-auto pb-20 max-w-5xl justify-center px-6 md:flex md:space-x-6 xl:px-0 ">
+        <div className="mx-auto pb-20 max-w-5xl justify-center px-6 md:flex md:space-x-6 xl:px-0 relative">
           <div className="rounded-lg md:w-2/3">
             {cartItems.map((item, index) => (
               <div className="justify-between mb-6 rounded-lg border  drop-shadow-xl bg-white p-6  sm:flex  sm:justify-start" style={{ backgroundColor: mode === 'dark' ? 'rgb(32 33 34)' : '', color: mode === 'dark' ? 'white' : '', }}>
@@ -71,9 +134,157 @@ function Cart() {
               </div>
             </div>
             {/* <Modal  /> */}
-            <Modal />
+            <div className="  text-center rounded-lg text-white font-bold">
+                <button
+                    type="button"
+                    onClick={handleCheckout}
+                    // onClick={openModal}
+                    className="w-full  bg-violet-600 py-2 text-center rounded-lg text-white font-bold bg-violet-600"
+                >
+                    Buy Now
+                </button>
+            </div>
           </div>
         </div>
+        <Transition
+          show={isOpen}
+          as={Fragment}
+          enter="transition-opacity duration-500"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="transition-opacity duration-500"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/85 backdrop-blur-sm">
+            <div className="flex flex-col items-center justify-center px-8 md:flex-row md:space-x-8">
+              
+              {/* Left Loader */}
+              <motion.div 
+                className={`relative w-36 h-36 flex items-center justify-center transform transition-transform duration-400 ease-out z-10`}
+                initial={{ scale: 0.9 }}
+                animate={{ 
+                  scale: [0.9, 1, 0.9],
+                  rotate: [-5, 0, -5]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <div className="absolute inset-0 border-4 border-gray-300 border-t-violet-600 rounded-full animate-spin shadow-md"></div>
+                  <div className="w-[95%] h-[95%] flex items-center justify-center bg-white rounded-full shadow-md">
+                    <motion.img 
+                      src="/bank.png" 
+                      alt="bank" 
+                      className="w-3/5 h-3/5 object-contain"
+                      animate={{
+                        scale: [1, 1.1, 1],
+                        opacity: [1, 0.8, 1]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                </div>
+              </motion.div>
+
+              {/* Connecting Line with Message */}
+              <div className="relative py-2 flex flex-col items-center justify-center w-full md:w-40 md:py-0">
+              {/* Base line with gradient and glow */}
+                <div className="w-full h-1.5 bg-gradient-to-r from-violet-400 via-violet-600 to-violet-400 rounded-full absolute z-0 shadow-[0_0_10px_rgba(139,92,246,0.5)]"></div>
+                
+                {/* Animated background line */}
+                  <motion.div 
+                    className="w-full h-1 bg-gradient-to-r from-violet-300 to-violet-500 rounded-full absolute z-0 opacity-50"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [0.3, 0.7, 0.3],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+
+                {/* Moving bills */}
+                  {bills.map((bill) => (
+                    <motion.div
+                      key={bill.id}
+                      className="absolute z-10"
+                      initial={{ 
+                        x: '-10%',
+                        y: bill.y,
+                        scale: 0,
+                        opacity: 0,
+                        rotate: bill.rotation
+                      }}
+                      animate={{
+                        x: '110%',
+                        y: [bill.y, bill.y - 15, bill.y],
+                        scale: [0, bill.scale, 0],
+                        opacity: [0, 1, 0],
+                        rotate: [bill.rotation, bill.rotation + 360, bill.rotation + 720]
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        delay: bill.delay,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <img 
+                        src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png"
+                        alt="dollar bill"
+                        className="w-12 h-8 object-contain"
+                        style={{ 
+                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                          transform: `scale(${bill.scale})`
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Right Loader */}
+                <motion.div 
+                className={`relative w-36 h-36 flex items-center justify-center transform transition-transform duration-400 ease-out `}
+                initial={{ scale: 0.9 }}
+                animate={{ 
+                  scale: [0.9, 1, 0.9],
+                  rotate: [5, 0, 5]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                >
+                <div className="absolute inset-0 border-4 border-gray-300 border-t-violet-600 rounded-full animate-spin shadow-md"></div>
+                <div className="w-[95%] h-[95%] flex items-center justify-center bg-white rounded-full shadow-md">
+                  <motion.img 
+                    src="/banking.png" 
+                    alt="mobile"
+                    className="w-3/5 h-3/5 object-contain"
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [1, 0.8, 1]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
+        </Transition>
       </div>
     </Layout>
   )
