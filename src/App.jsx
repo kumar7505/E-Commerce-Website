@@ -13,6 +13,7 @@ import AddProduct from './pages/admin/page/AddProduct';
 import UpdateProduct from './pages/admin/page/UpdateProduct';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import Payment from './pages/order/Payment';
 
 function App() {
   return (
@@ -44,6 +45,8 @@ function App() {
               <UpdateProduct />
             </ProtectedRouteForAdmin>
           } />
+          <Route path="/success" element={<Payment status="success" />} />
+          <Route path="/cancel" element={<Payment status="failure" />} />
           <Route path="/*" element={<NoPage/>} />
         </Routes>
         <ToastContainer />
