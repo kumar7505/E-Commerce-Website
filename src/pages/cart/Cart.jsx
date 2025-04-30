@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useState, Fragment } from 'react'
+import React, { useContext, useEffect, useState, Fragment, memo } from 'react'
 import myContext from '../../context/data/myContext';
 import Layout from '../../Components/layout/Layout';
-import { useDispatch, useSelector } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { deleteFromCart } from '../../redux/cartSlice';
 import { Dialog, Transition } from '@headlessui/react'
@@ -9,14 +9,13 @@ import { loadStripe } from '@stripe/stripe-js';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 
-function Cart() {
+const Cart = memo(() => {
 
   const context = useContext(myContext)
-  const { mode } = context;
+  const { mode, setPayment } = context;
   
-  const cartItems = useSelector((state) => state.cart);
-  const dispatch = useDispatch();
-  console.log("cartItems", cartItems);
+  const cartItems = useSelector((state) => state.cart, shallowEqual);
+  const dispatch = useDispatch(); 
   
   const [totalAmount, setTotalAmount] = useState(0);
   const deleteCart = (item) => {
@@ -25,6 +24,7 @@ function Cart() {
   }
 
   useEffect(() => {
+    console.log("maintha");
     const total = cartItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
     setTotalAmount(total);
   }, [cartItems]); // Recalculate total whenever cartItems changes
@@ -39,6 +39,28 @@ function Cart() {
 
   function openModal() {
       setIsOpen(true)
+      const createBill = () => ({
+        id: Date.now() + Math.random(),
+        delay: Math.random() * 0.3,
+        y: Math.random() * 20 - 10, // Random y position between -10 and 10
+        rotation: Math.random() * 20 - 10, // Random initial rotation
+        scale: Math.random() * 0.3 + 0.7 // Random scale between 0.7 and 1
+      });
+    
+      // Create initial bills
+      setBills(Array.from({ length: 3 }, createBill));
+    
+      const interval = setInterval(() => {
+        const newBill = createBill();
+        
+        setBills(current => [...current, newBill]);
+        
+        setTimeout(() => {
+          setBills(current => current.filter(b => b.id !== newBill.id));
+        }, 2500);
+      }, 800);
+      
+      return () => clearInterval(interval);
   }
 
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -52,41 +74,26 @@ function Cart() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items: [...cartItems, {title: "Shipping Amount", price: cartItems.length * 10}] }),
     });
-    console.log("kumar");
     
+    if(response.status === 200) {
+      setPayment(true);
+    }
+    
+    if(response.status === 400) {
+      return toast.error("Error in creating checkout session");
+    }
 
     const session = await response.json();
+    toast.success("Redirecting to checkout page");
     await stripe.redirectToCheckout({ sessionId: session.id });
+
+    closeModal();
   };
   
 
   //loader
   const [bills, setBills] = useState([]);
-  
-  useEffect(() => {
-    const createBill = () => ({
-      id: Date.now() + Math.random(),
-      delay: Math.random() * 0.3,
-      y: Math.random() * 20 - 10, // Random y position between -10 and 10
-      rotation: Math.random() * 20 - 10, // Random initial rotation
-      scale: Math.random() * 0.3 + 0.7 // Random scale between 0.7 and 1
-    });
 
-    // Create initial bills
-    setBills(Array.from({ length: 3 }, createBill));
-
-    const interval = setInterval(() => {
-      const newBill = createBill();
-      
-      setBills(current => [...current, newBill]);
-      
-      setTimeout(() => {
-        setBills(current => current.filter(b => b.id !== newBill.id));
-      }, 2500);
-    }, 800);
-    
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <Layout >
@@ -157,7 +164,7 @@ function Cart() {
           leaveTo="opacity-0"
         >
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/85 backdrop-blur-sm">
-            <div className="flex flex-col items-center justify-center px-8 md:flex-row md:space-x-8">
+            <div className="flex flex-col items-center justify-center px-8 md:flex-row md:space-x-24">
               
               {/* Left Loader */}
               <motion.div 
@@ -195,11 +202,11 @@ function Cart() {
               {/* Connecting Line with Message */}
               <div className="relative py-2 flex flex-col items-center justify-center w-full md:w-40 md:py-0">
               {/* Base line with gradient and glow */}
-                <div className="w-full h-1.5 bg-gradient-to-r from-violet-400 via-violet-600 to-violet-400 rounded-full absolute z-0 shadow-[0_0_10px_rgba(139,92,246,0.5)]"></div>
+                <div className="w-[150%] h-1.5 bg-gradient-to-r from-violet-400 via-violet-600 to-violet-400 rounded-full absolute z-0 shadow-[0_0_10px_rgba(139,92,246,0.5)]"></div>
                 
                 {/* Animated background line */}
                   <motion.div 
-                    className="w-full h-1 bg-gradient-to-r from-violet-300 to-violet-500 rounded-full absolute z-0 opacity-50"
+                    className="w-[170%] h-1 bg-gradient-to-r from-violet-300 to-violet-500 rounded-full absolute z-0 opacity-50"
                     animate={{
                       scale: [1, 1.2, 1],
                       opacity: [0.3, 0.7, 0.3],
@@ -288,6 +295,6 @@ function Cart() {
       </div>
     </Layout>
   )
-}
+});
 
 export default Cart

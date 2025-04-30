@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { BrowserRouter as Router,  Route,  Routes, Navigate } from "react-router-dom";
 import Home from './pages/home/Home';
 import Order from './pages/order/Order';
@@ -14,6 +14,8 @@ import UpdateProduct from './pages/admin/page/UpdateProduct';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import Payment from './pages/order/Payment';
+import myContext from './context/data/myContext';
+import { PaymentTrueRoute } from './pages/order/PaymentTrueRoute';
 
 function App() {
   return (
@@ -45,7 +47,11 @@ function App() {
               <UpdateProduct />
             </ProtectedRouteForAdmin>
           } />
-          <Route path="/success" element={<Payment status="success" />} />
+            <Route path="/success" element={
+              <PaymentTrueRoute>
+                <Payment status="success" />
+              </PaymentTrueRoute>
+        } />
           <Route path="/cancel" element={<Payment status="failure" />} />
           <Route path="/*" element={<NoPage/>} />
         </Routes>

@@ -5,22 +5,21 @@ import { BsFillCloudSunFill } from 'react-icons/bs'
 import { FiSun } from 'react-icons/fi'
 import myContext from '../../context/data/myContext'
 import { RxCross2 } from 'react-icons/rx'
-import { useSelector } from 'react-redux'
+import { shallowEqual, useSelector } from 'react-redux'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
-
   const context = useContext(myContext)
   const { toggleMode, mode } = context
-
-  const cartItems = useSelector((state) => state.cart);
+  console.log('kumar');
+  
+  const cartItems = useSelector((state) => state.cart, shallowEqual);
   const logout = () => {
     localStorage.removeItem('user');
     window.location.href = '/login';
   }
 
   const user = JSON.parse(localStorage.getItem('user'));
-  console.log(user + "user");
   
   return (
     <div className="bg-white sticky top-0 z-50  "  >

@@ -6,6 +6,7 @@ import { auth, fireDB } from '../../firebase/FirebaseConfig';
 
 const MyState = (props) => {
     const [mode, setMode] = useState("light");
+    const [payment, setPayment] = useState(false);
 
     const toggleMode = () => {
       if(mode === "light"){
@@ -146,6 +147,9 @@ const MyState = (props) => {
           editHandle,
           updateProduct,
           deleteProduct,
+
+          payment,
+          setPayment
         }}
     >
         {props.children}

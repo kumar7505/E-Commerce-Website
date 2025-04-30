@@ -1,18 +1,74 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import styles from './payment.module.less';
 import './paymentFail.css';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { clearCart } from '../../redux/cartSlice';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { fireDB } from '../../firebase/FirebaseConfig';
+import { useNavigate } from 'react-router-dom';
+import myContext from '../../context/data/myContext';
 
 const Payment = ({status}) => {
 
     //success
+    const { payment, setPayment } = useContext(myContext);
     const [isComplete, setIsComplete] = useState(false);
     const [success, setSuccess] = useState(false);
     const [progress, setProgress] = useState(0);
+    const cartItems = useSelector((state) => state.cart);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    if(payment === false && status === "success"){
+      navigate("/");
+    }
     
+    const saveOrder = async () => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      try {
+        console.log(user?.user?.uid + " " + user?.user?.email);
+        
+        await addDoc(collection(fireDB, "orders"), {
+          userId: user?.user?.uid || "guest",
+          email: user?.user?.email || "guest@gmail.com",
+          items: cartItems,
+          totalAmount: cartItems.reduce((acc, item) => acc + parseInt(item.price), 0),
+          createdAt: Timestamp.now(),
+        });
+        console.log("Order saved to Firestore");
+      } catch (error) {
+        console.error("Failed to save order:", error);
+      }
+    };
+
+    const hasSavedOrder = useRef(false);
+
+    useEffect(() => {
+      const navEntries = performance.getEntriesByType("navigation");
+      const isReload = navEntries[0]?.type === "reload";
+  
+      if (isReload) {
+        setPayment(false);
+        navigate("/"); // or whatever your target route is
+      }
+    }, [navigate]);
+
+    useEffect(() => {        
+      if (status === "success" && !hasSavedOrder.current && cartItems.length > 0) {
+        hasSavedOrder.current = true;
+        saveOrder();
+        dispatch(clearCart());
+      } 
+      const timer = setTimeout(() => {
+        setPayment(false);
+        navigate("/"); // redirects to homepage
+      }, 20000); // 20 seconds
+    }, [status]);
+
     useEffect(() => {
       // Delay before starting the progress
+     
       const loadingDelay = setTimeout(() => {
         // Progress interval
         const interval = setInterval(() => {
@@ -51,8 +107,6 @@ const Payment = ({status}) => {
     };
 
     // Failure
-
-    const cartItems = useSelector((state) => state.cart);
     let total = cartItems.reduce((acc, item) => acc + parseInt(item.price), 0);
 
     total += (cartItems.length * 10);

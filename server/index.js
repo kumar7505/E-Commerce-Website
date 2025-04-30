@@ -43,7 +43,7 @@ app.post("/create-checkout-session", async (req, res) => {
       cancel_url: "http://localhost:5173/cancel",
     });
 
-    res.json({ id: session.id });
+    res.json({ id: session.id, payment: "success" });
   } catch (error) {
     console.error("Stripe error:", error);
     res.status(500).json({ error: error.message });
