@@ -183,13 +183,13 @@ export default function Navbar() {
                 </div>
 
                 {/* Search */}
-                <div className="flex lg:ml-6">
+                <div className="flex lg:ml-4">
                   <button className='' onClick={toggleMode}>
                     {/* <MdDarkMode size={35} style={{ color: mode === 'dark' ? 'white' : '' }} /> */}
                     {mode === 'light' ?
-                      (<FiSun className='' size={30} />
+                      (<FiSun className='' size={25} />
                       ) : 'dark' ?
-                        (<BsFillCloudSunFill size={30} />
+                        (<BsFillCloudSunFill size={25} />
                         ) : ''}
                   </button>
                 </div>

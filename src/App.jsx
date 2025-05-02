@@ -47,11 +47,11 @@ function App() {
               <UpdateProduct />
             </ProtectedRouteForAdmin>
           } />
-            <Route path="/success" element={
-              <PaymentTrueRoute>
-                <Payment status="success" />
-              </PaymentTrueRoute>
-        } />
+          <Route path="/success" element={
+            <PaymentTrueRoute>
+              <Payment status="success" />
+            </PaymentTrueRoute>
+          } />
           <Route path="/cancel" element={<Payment status="failure" />} />
           <Route path="/*" element={<NoPage/>} />
         </Routes>

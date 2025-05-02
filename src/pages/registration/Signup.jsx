@@ -30,7 +30,8 @@ function Signup() {
                 name: name,
                 uid: users.user.uid,
                 email: users.user.email,
-                time : Timestamp.now()
+                time : Timestamp.now(),
+                address: {},
             }
 
             const useRef = collection(fireDB, "users");

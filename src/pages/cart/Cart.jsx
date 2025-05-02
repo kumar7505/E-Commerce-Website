@@ -8,6 +8,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { loadStripe } from '@stripe/stripe-js';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
+import AddAddress from '../../Components/modal/AddAddress';
 
 const Cart = memo(() => {
 
@@ -17,6 +18,7 @@ const Cart = memo(() => {
   const cartItems = useSelector((state) => state.cart, shallowEqual);
   const dispatch = useDispatch(); 
   
+  const [showAddress, setShowAddress] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
   const deleteCart = (item) => {
     dispatch(deleteFromCart(item));
@@ -66,6 +68,15 @@ const Cart = memo(() => {
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
   const handleCheckout = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if(user.address === undefined || user.address === null) {
+      setShowAddress(true);
+      toast.error("address not found");
+      toast.error("Please add address to proceed with payment");
+      return;
+    }
+    console.log(user.address);
+    
     const stripe = await stripePromise;
     openModal();
     
@@ -292,6 +303,8 @@ const Cart = memo(() => {
             </div>
           </div>
         </Transition>
+
+        {showAddress && <AddAddress setShowAddress={setShowAddress} />}
       </div>
     </Layout>
   )
