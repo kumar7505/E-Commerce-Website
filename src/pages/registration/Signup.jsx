@@ -4,7 +4,7 @@ import myContext from '../../context/data/myContext';
 import { toast } from 'react-toastify';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, fireDB } from '../../firebase/FirebaseConfig';
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc, Timestamp } from 'firebase/firestore';
 import Loader from '../../Components/loader/Loader';
 
 function Signup() {
@@ -31,11 +31,17 @@ function Signup() {
                 uid: users.user.uid,
                 email: users.user.email,
                 time : Timestamp.now(),
-                address: {},
+                address: {
+                    doorAddress: "",
+                    area: "",       
+                    city: "",
+                    state: "",
+                    pinCode: ""
+                },
             }
 
-            const useRef = collection(fireDB, "users");
-            await addDoc(useRef, user);
+            const useRef = doc(fireDB, "users", user.uid);
+            await setDoc(useRef, user);
             toast.success("Signup Succesfully")
             setEmail("");
             setName("");

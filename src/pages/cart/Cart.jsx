@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, Fragment, memo } from 'react'
+import React, { useContext, useEffect, useState, Fragment, memo, use } from 'react'
 import myContext from '../../context/data/myContext';
 import Layout from '../../Components/layout/Layout';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
@@ -17,7 +17,6 @@ const Cart = memo(() => {
   
   const cartItems = useSelector((state) => state.cart, shallowEqual);
   const dispatch = useDispatch(); 
-  
   const [showAddress, setShowAddress] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
   const deleteCart = (item) => {
@@ -28,6 +27,8 @@ const Cart = memo(() => {
   useEffect(() => {
     console.log("maintha");
     const total = cartItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
+    console.log(total);
+    
     setTotalAmount(total);
   }, [cartItems]); // Recalculate total whenever cartItems changes
 
@@ -67,16 +68,32 @@ const Cart = memo(() => {
 
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
+  const handleAddress = async() => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    console.log("dharani");
+    setShowAddress(true);
+  }
+
   const handleCheckout = async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if(user.address === undefined || user.address === null) {
-      setShowAddress(true);
-      toast.error("address not found");
-      toast.error("Please add address to proceed with payment");
-      return;
-    }
-    console.log(user.address);
+    const userAddress = JSON.parse(localStorage.getItem("userData"));
     
+    console.log(userAddress);
+    
+    if(!userAddress?.show){
+      handleAddress();
+      return;
+    } else {
+      const currentTimestamp = new Date().getTime();
+      const storedTimestamp = userData.timestamp;
+
+      const hoursPassed = (currentTimestamp - storedTimestamp) / (1000 * 60 * 60); 
+
+      if (hoursPassed > 24) {
+        handleAddress();
+        return;
+      }
+    }
+    const user = JSON.parse(localStorage.getItem("user"));
     const stripe = await stripePromise;
     openModal();
     
@@ -93,9 +110,11 @@ const Cart = memo(() => {
     if(response.status === 400) {
       return toast.error("Error in creating checkout session");
     }
-
+    
     const session = await response.json();
     toast.success("Redirecting to checkout page");
+    console.log(session.id);
+    
     await stripe.redirectToCheckout({ sessionId: session.id });
 
     closeModal();
@@ -304,7 +323,7 @@ const Cart = memo(() => {
           </div>
         </Transition>
 
-        {showAddress && <AddAddress setShowAddress={setShowAddress} />}
+        {showAddress && (<AddAddress setShowAddress={setShowAddress}/>)}
       </div>
     </Layout>
   )

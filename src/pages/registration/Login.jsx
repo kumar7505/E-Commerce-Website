@@ -3,8 +3,9 @@ import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify';
 import myContext from '../../context/data/myContext';
-import { auth } from '../../firebase/FirebaseConfig';
+import { auth, fireDB } from '../../firebase/FirebaseConfig';
 import Loader from '../../Components/loader/Loader';
+import { doc, getDoc } from 'firebase/firestore';
 
 function Login() {    
     
@@ -15,12 +16,24 @@ function Login() {
     const {loading, setLoading} = useContext(myContext);
     const navigate = useNavigate();
 
+    const checkAddress = async(userId) => {
+        const userRef = doc(fireDB, "users", userId); // Reference to the user's document
+
+        // Get the document data
+        const userDoc = await getDoc(userRef);
+        console.log("User Data:", userDoc.data()); // Log the user's data
+        let userData = userDoc.data().address;
+        userData = {...userData, show: false, timestamp: new Date().getTime()}; // Store the current timestamp in milliseconds};
+        localStorage.setItem("userData", JSON.stringify(userData));
+    }
+
     const logIn = async() => {
         setLoading(true);
         try{
             const result = await signInWithEmailAndPassword(auth, email, password);
             toast.success("Login Successfully");
             localStorage.setItem("user", JSON.stringify(result));
+            checkAddress(result.user.uid);
             setTimeout(() => {
                 setLoading(false);
             }, 300);

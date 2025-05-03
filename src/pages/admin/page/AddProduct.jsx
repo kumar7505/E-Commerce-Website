@@ -22,12 +22,12 @@ function AddProduct() {
                         />
                     </div>
                     <div>
-                        <input type="text"
+                        <input type="number"
                             value={products.price}
                             onChange={(e) => setProducts({ ...products, price: e.target.value })}
                             name='price'
                             className=' bg-gray-600 mb-4 px-2 py-2 w-full lg:w-[20em] rounded-lg text-white placeholder:text-gray-200 outline-none'
-                            placeholder='Product price'
+                            placeholder='Product price in INR'
                         />
                     </div>
                     <div>

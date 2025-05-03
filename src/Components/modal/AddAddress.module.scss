@@ -4,18 +4,28 @@ $color-bg: #EBECF0;
 $color-shadow: #BABECC;
 $color-white: #FFF;
 
+.address p, .address input, .address select, .address textarea, .address button {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: -0.2px;
+  font-size: $ruler;
+}
+
+.address div, .address p {
+  color: $color-shadow;
+  text-shadow: 1px 1px 1px $color-white;
+}
 
 
-
-form {
+.address form {
   padding: $ruler;
   width: $ruler*20;
   margin: 0 auto;
 }
 
-.segment {
+.address.segment {
   padding: $ruler*2 0;
   text-align: center;
+  gap: 5px;
 }
 
 button, input {
