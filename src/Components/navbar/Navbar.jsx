@@ -11,7 +11,6 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
   const context = useContext(myContext)
   const { toggleMode, mode } = context
-  console.log('kumar');
   
   const cartItems = useSelector((state) => state.cart, shallowEqual);
   const logout = () => {

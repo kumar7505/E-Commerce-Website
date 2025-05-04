@@ -20,8 +20,28 @@ const Payment = ({status}) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    if(payment === false && status === "success"){
-      navigate("/");
+    if(status === "success"){
+      const sessionId = new URLSearchParams(window.location.search).get("session_id");
+
+      if (sessionId) {
+        fetch(`http://localhost:5000/checkout-session?sessionId=${sessionId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.payment_status === "paid") {
+              toast.success("Payment successful!");
+            } else {
+              toast.error("Payment not occurred. Please try again.");
+            }
+          })
+          .catch((err) => {
+            toast.error("Error verifying payment:", err);
+            toast.error("❌ Error checking payment status.");
+          });
+      } else {
+        toast.error("❌ No session ID found in URL.");
+      }
+      
+
     }
     
     const saveOrder = async () => {

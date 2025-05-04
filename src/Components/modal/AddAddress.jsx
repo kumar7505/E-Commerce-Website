@@ -10,11 +10,11 @@ const AddAddress = ({setShowAddress}) => {
     const userData = JSON.parse(localStorage.getItem("userData"));
     const {loading, setLoading} = useContext(myContext);
     const [address, setAddress] = useState({
-        doorAddress: userData.doorAddress,
-        area: userData.area,
-        city: userData.city,
-        state: userData.state,
-        pinCode: userData.pinCode,    
+        doorAddress: userData?.doorAddress || "",
+        area: userData?.area || "",
+        city: userData?.city || "",
+        state: userData?.state || "",
+        pinCode: userData?.pinCode || "",    
         show: true,
         timeStamp: new Date().getTime(),
     });
@@ -53,7 +53,7 @@ const AddAddress = ({setShowAddress}) => {
                 
                 localStorage.setItem("userData", JSON.stringify(address));
             } else {
-                toast.error("User document does not exist. Please try again later.");
+                toast.error("User document does not exist. Login again.");
             }
             setTimeout(() => {
                 setLoading(false);

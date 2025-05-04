@@ -34,12 +34,11 @@ app.post("/create-checkout-session", async (req, res) => {
         quantity: 1,
       }));
       
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: "http://localhost:5173/success",
+      success_url: "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: "http://localhost:5173/cancel",
     });
 
@@ -47,6 +46,28 @@ app.post("/create-checkout-session", async (req, res) => {
   } catch (error) {
     console.error("Stripe error:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/checkout-session", async (req, res) => {
+  const { sessionId } = req.query;
+
+  if (!sessionId) {
+    return res.status(400).json({ error: "Missing sessionId" });
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    res.json({
+      id: session.id,
+      payment_status: session.payment_status,
+      customer_email: session.customer_details?.email || null,
+      amount_total: session.amount_total,
+      currency: session.currency,
+    });
+  } catch (err) {
+    console.error("Session retrieve error:", err.message);
+    res.status(400).json({ error: "Invalid session ID" });
   }
 });
 

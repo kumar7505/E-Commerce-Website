@@ -7,14 +7,17 @@ import Track from '../../Components/track/Track';
 import Testimonial from '../../Components/testimonial/Testimonial';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart, deleteFromCart } from '../../redux/cartSlice';
+import myContext from '../../context/data/myContext';
 
 const Home = () => {
   const dispatch = useDispatch();
   const cartItem = useSelector((state) => state.cart);
-
+  const {payment} = useContext(myContext);
   const addCart = () => {
     dispatch(addToCart("shirt"))
   }
+  console.log(payment);
+  
   const deleteCart = () => {
     dispatch(deleteFromCart("shirt"))
   }

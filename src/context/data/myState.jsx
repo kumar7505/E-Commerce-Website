@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import myContext from './myContext'
-import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, setDoc, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, setDoc, Timestamp } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { auth, fireDB } from '../../firebase/FirebaseConfig';
 
@@ -127,6 +127,26 @@ const MyState = (props) => {
       }
     }
 
+    const [order, setOrder] = useState([]);
+
+    const getOrderData = async () => {
+      setLoading(true)
+      try {
+        const result = await getDocs(collection(fireDB, "orders"))
+        const ordersArray = [];
+        result.forEach((doc) => {
+          ordersArray.push(doc.data());
+          setLoading(false)
+        });
+        setOrder(ordersArray);
+        console.log(ordersArray)
+        setLoading(false);
+      } catch (error) {
+        console.log(error)
+        setLoading(false)
+      }
+    }
+
     useEffect(() => {
       getProductData();
     }, []); 
@@ -149,7 +169,9 @@ const MyState = (props) => {
           deleteProduct,
 
           payment,
-          setPayment
+          setPayment,
+
+          order
         }}
     >
         {props.children}

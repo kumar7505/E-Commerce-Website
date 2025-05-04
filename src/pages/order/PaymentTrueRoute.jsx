@@ -5,8 +5,5 @@ import { Navigate } from "react-router-dom";
 
 export const PaymentTrueRoute = ({children}) => {
     const {payment} = useContext(myContext);
-    if(payment !== "success"){
-      return <Navigate to="/" />
-    }
     return children
   }
